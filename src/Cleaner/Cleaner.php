@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace PhpPackageVisibility\Cleaner;
 
+use PhpPackageVisibility\Visibility;
+
 /**
  * Strips keyword-syntax visibility modifiers (private/protected/public before
  * class/interface/trait/enum) from a source file, producing plain, valid, executable PHP.
@@ -20,10 +22,19 @@ final class Cleaner
     /** @var list<int> */
     private const SKIPPABLE_MODIFIERS = [T_ABSTRACT, T_FINAL, T_READONLY];
 
-    /** @var list<int> */
-    private const VISIBILITY_TOKENS = [T_PRIVATE, T_PROTECTED, T_PUBLIC];
+    /** @var array<int, Visibility> */
+    private const VISIBILITY_TOKEN_MAP = [
+        T_PRIVATE => Visibility::Private,
+        T_PROTECTED => Visibility::Protected,
+        T_PUBLIC => Visibility::Public,
+    ];
 
     public function clean(string $source): string
+    {
+        return $this->extract($source)->cleanedSource;
+    }
+
+    public function extract(string $source): ExtractionResult
     {
         $tokens = token_get_all($source);
         $count = count($tokens);
@@ -33,6 +44,9 @@ final class Cleaner
         /** @var list<bool> $braceStack true = this brace opened a namespace block */
         $braceStack = [];
         $expectingNamespaceBrace = false;
+        $pendingVisibility = null;
+        /** @var list<Visibility|null> $declaredVisibilities */
+        $declaredVisibilities = [];
 
         for ($i = 0; $i < $count; $i++) {
             $token = $tokens[$i];
@@ -66,15 +80,53 @@ final class Cleaner
                 continue;
             }
 
-            if ($eligibleDepth === 0 && in_array($id, self::VISIBILITY_TOKENS, true) && $this->precedesCiteKeyword($tokens, $i)) {
+            if ($eligibleDepth === 0 && isset(self::VISIBILITY_TOKEN_MAP[$id]) && $this->precedesCiteKeyword($tokens, $i)) {
+                $pendingVisibility = self::VISIBILITY_TOKEN_MAP[$id];
                 $i = $this->skipSingleTrailingWhitespace($tokens, $i);
+                continue;
+            }
+
+            if ($eligibleDepth === 0 && in_array($id, self::CITE_KEYWORDS, true) && $this->isGenuineDeclaration($tokens, $i)) {
+                $declaredVisibilities[] = $pendingVisibility;
+                $pendingVisibility = null;
+                $output .= $text;
                 continue;
             }
 
             $output .= $text;
         }
 
-        return $output;
+        return new ExtractionResult($output, $declaredVisibilities);
+    }
+
+    /**
+     * Distinguishes a real "class Foo" declaration from other appearances of the same
+     * keyword token: `Foo::class` (constant fetch) and `new class {}` (anonymous class)
+     * are never immediately followed by an identifier naming the class.
+     *
+     * @param list<array{0: int, 1: string, 2: int}|string> $tokens
+     */
+    private function isGenuineDeclaration(array $tokens, int $index): bool
+    {
+        $count = count($tokens);
+
+        for ($j = $index + 1; $j < $count; $j++) {
+            $token = $tokens[$j];
+
+            if (is_string($token)) {
+                return false;
+            }
+
+            $id = $token[0];
+
+            if ($id === T_WHITESPACE || $id === T_COMMENT || $id === T_DOC_COMMENT) {
+                continue;
+            }
+
+            return $id === T_STRING;
+        }
+
+        return false;
     }
 
     /**

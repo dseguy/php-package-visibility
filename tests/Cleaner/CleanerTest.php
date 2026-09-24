@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhpPackageVisibility\Tests\Cleaner;
 
 use PhpPackageVisibility\Cleaner\Cleaner;
+use PhpPackageVisibility\Visibility;
 use PHPUnit\Framework\TestCase;
 
 final class CleanerTest extends TestCase
@@ -242,6 +243,43 @@ final class CleanerTest extends TestCase
         $source = "<?php\nclass A {}\ninterface B {}\n";
 
         self::assertSame($source, $this->cleaner->clean($source));
+    }
+
+    public function testExtractReportsVisibilityPerDeclarationInSourceOrder(): void
+    {
+        $source = <<<'PHP'
+        <?php
+        private class A {}
+        class B {}
+
+        #[PackageProtected]
+        class C {}
+
+        protected enum D {}
+        PHP;
+
+        $result = $this->cleaner->extract($source);
+
+        self::assertSame(
+            [Visibility::Private, null, null, Visibility::Protected],
+            $result->declaredVisibilities,
+        );
+    }
+
+    public function testExtractDoesNotCountClassConstFetchOrAnonymousClassAsDeclarations(): void
+    {
+        $source = <<<'PHP'
+        <?php
+        private class A {}
+
+        $ref = Foo::class;
+        $x = new class {};
+        $y = new class extends Bar {};
+        PHP;
+
+        $result = $this->cleaner->extract($source);
+
+        self::assertSame([Visibility::Private], $result->declaredVisibilities);
     }
 
     public function testCleanedOutputIsValidPhp(): void
