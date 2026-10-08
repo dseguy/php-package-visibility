@@ -3,6 +3,14 @@
     "description": "Namespace-scoped visibility (private/protected/public) for PHP classes, interfaces, traits, and enums.",
     "type": "library",
     "license": "MIT",
+    "keywords": [
+        "php",
+        "namespace",
+        "visibility",
+        "static-analysis",
+        "encapsulation",
+        "package-private"
+    ],
     "authors": [
         {
             "name": "Damien Seguy",
@@ -30,5 +38,9 @@
     "bin": [
         "bin/pv-clean",
         "bin/pv-check"
-    ]
+    ],
+    "scripts": {
+        "test": "phpunit",
+        "stan": "phpstan analyse"
+    }
 }

@@ -23,7 +23,7 @@ function pv_check_usage(): never
     exit(1);
 }
 
-$paths = array_slice($argv, 1);
+$paths = array_slice($_SERVER['argv'], 1);
 
 if ($paths === []) {
     pv_check_usage();

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhpPackageVisibility\Tests\Checker;
+namespace PhpPackageVisibility\Tests\Support;
 
 /**
  * Writes an in-memory set of PHP files to a temp directory for a single test, and cleans
@@ -14,7 +14,7 @@ final class FixtureDirectory
 
     public function __construct()
     {
-        $this->dir = sys_get_temp_dir() . '/pv-checker-test-' . bin2hex(random_bytes(8));
+        $this->dir = sys_get_temp_dir() . '/pv-test-' . bin2hex(random_bytes(8));
         mkdir($this->dir, 0777, true);
     }
 

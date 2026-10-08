@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhpPackageVisibility\Tests\Checker;
 
 use PhpPackageVisibility\Checker\Checker;
+use PhpPackageVisibility\Tests\Support\FixtureDirectory;
 use PHPUnit\Framework\TestCase;
 
 final class CheckerTest extends TestCase

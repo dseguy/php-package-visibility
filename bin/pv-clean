@@ -29,7 +29,7 @@ function pv_clean_usage(): never
     exit(1);
 }
 
-$args = array_slice($argv, 1);
+$args = array_slice($_SERVER['argv'], 1);
 
 if (count($args) < 2) {
     pv_clean_usage();

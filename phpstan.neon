@@ -1,5 +1,7 @@
 parameters:
     level: 8
     paths:
+        - bin/pv-clean
+        - bin/pv-check
         - src
         - tests
