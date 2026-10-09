@@ -156,7 +156,7 @@ final class FileVisitor extends NodeVisitorAbstract
             $type instanceof Node\NullableType => $this->extractNames($type->type),
             $type instanceof Node\UnionType, $type instanceof Node\IntersectionType => array_merge(
                 [],
-                ...array_map(fn (Node\Identifier|Node\Name|Node\ComplexType $t): array => $this->extractNames($t), $type->types),
+                ...array_map($this->extractNames(...) , $type->types),
             ),
             default => [],
         };
@@ -179,7 +179,7 @@ final class FileVisitor extends NodeVisitorAbstract
         }
 
         $this->usages[] = new Usage(
-            ltrim($target->toString(), '\\'),
+            ltrim($target->toString(), characters: '\\'),
             $this->currentNamespace(),
             $this->file,
             $target->getStartLine(),

@@ -52,21 +52,27 @@ final class Cleaner
             $token = $tokens[$i];
 
             if (is_string($token)) {
-                if ($token === '{') {
+                switch ($token) {
+                case '{': 
                     $isNamespaceBrace = $expectingNamespaceBrace;
                     $expectingNamespaceBrace = false;
                     $braceStack[] = $isNamespaceBrace;
                     if (!$isNamespaceBrace) {
                         $eligibleDepth++;
                     }
-                } elseif ($token === '}') {
+                    break;
+                case '}': 
                     $wasNamespaceBrace = array_pop($braceStack) ?? false;
                     if (!$wasNamespaceBrace) {
                         $eligibleDepth--;
                     }
-                } elseif ($token === ';') {
+                    break;
+                case ';': 
                     $expectingNamespaceBrace = false;
-                }
+                    break;
+                default: 
+                    // ok, let it be
+            }
 
                 $output .= $token;
                 continue;

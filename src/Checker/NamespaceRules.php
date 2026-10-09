@@ -26,7 +26,7 @@ final class NamespaceRules
      */
     private function segments(string $namespace): array
     {
-        $namespace = trim($namespace, '\\');
+        $namespace = trim($namespace, characters: '\\');
 
         return $namespace === '' ? [] : explode('\\', $namespace);
     }
@@ -41,6 +41,6 @@ final class NamespaceRules
     private function isAncestorOrSelf(array $maybeAncestor, array $namespace): bool
     {
         return count($maybeAncestor) <= count($namespace)
-            && array_slice($namespace, 0, count($maybeAncestor)) === $maybeAncestor;
+            && array_slice($namespace, offset: 0, length: count($maybeAncestor)) === $maybeAncestor;
     }
 }
